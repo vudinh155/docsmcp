@@ -291,12 +291,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Phạm vi số:</label>
+                    <label>Số bên trái (số thứ nhất):</label>
                     <div class="range-inputs">
                         <span>Từ</span>
-                        <input type="number" id="minRange" value="1" min="0">
+                        <input type="number" id="minLeftRange" value="1" min="0">
                         <span>đến</span>
-                        <input type="number" id="maxRange" value="100" min="1">
+                        <input type="number" id="maxLeftRange" value="1000" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Số bên phải (số thứ hai):</label>
+                    <div class="range-inputs">
+                        <span>Từ</span>
+                        <input type="number" id="minRightRange" value="1" min="0">
+                        <span>đến</span>
+                        <input type="number" id="maxRightRange" value="100" min="1">
                     </div>
                 </div>
 
@@ -394,9 +404,14 @@
             },
 
             getRange() {
-                const min = parseInt(document.getElementById('minRange').value) || 1;
-                const max = parseInt(document.getElementById('maxRange').value) || 100;
-                return { min, max };
+                const leftMin = parseInt(document.getElementById('minLeftRange').value) || 1;
+                const leftMax = parseInt(document.getElementById('maxLeftRange').value) || 1000;
+                const rightMin = parseInt(document.getElementById('minRightRange').value) || 1;
+                const rightMax = parseInt(document.getElementById('maxRightRange').value) || 100;
+                return {
+                    left: { min: leftMin, max: leftMax },
+                    right: { min: rightMin, max: rightMax }
+                };
             },
 
             randomInt(min, max) {
@@ -413,8 +428,8 @@
                 const operation = operations[this.randomInt(0, operations.length - 1)];
                 const range = this.getRange();
 
-                let num1 = this.randomInt(range.min, range.max);
-                let num2 = this.randomInt(range.min, range.max);
+                let num1 = this.randomInt(range.left.min, range.left.max);
+                let num2 = this.randomInt(range.right.min, range.right.max);
                 let answer, remainder = null;
                 let question;
 
@@ -435,14 +450,16 @@
                         break;
                     case '/':
                         // Chia hết: tạo số chia hết
-                        num2 = this.randomInt(1, Math.min(20, range.max)); // Số chia nhỏ hơn
-                        num1 = num2 * this.randomInt(1, Math.floor(range.max / num2));
+                        num2 = this.randomInt(range.right.min, range.right.max);
+                        num1 = num2 * this.randomInt(Math.max(1, Math.ceil(range.left.min / num2)), Math.floor(range.left.max / num2));
                         answer = num1 / num2;
                         question = `${num1} ÷ ${num2} = ?`;
                         break;
                     case '%':
                         // Chia có dư
-                        num2 = this.randomInt(2, Math.min(20, range.max));
+                        num1 = this.randomInt(range.left.min, range.left.max);
+                        num2 = this.randomInt(range.right.min, range.right.max);
+                        if (num2 === 0) num2 = 1; // Tránh chia cho 0
                         answer = Math.floor(num1 / num2);
                         remainder = num1 % num2;
                         question = `${num1} ÷ ${num2} = ? (dư ?)`;
